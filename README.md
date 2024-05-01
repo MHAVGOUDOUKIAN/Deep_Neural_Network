@@ -27,14 +27,14 @@ You can edit these files and add any numbers of sources files you want in <u>**s
 Create a bare clone of the template
 
 ```shell
-git clone --bare https://github.com/EXAMPLE-USER/SFML_Template.git
+git clone --bare https://github.com/MHAVGOUDOUKIAN/SFML_Template.git
 ```
 
 Push the mirror to the new repository
 
 ```shell
 cd OLD-REPOSITORY.git
-git push --mirror https://github.com/EXAMPLE-USER/NEW-SFML-PROJECT.git
+git push --mirror https://github.com/MHAVGOUDOUKIAN/NEW-SFML-PROJECT.git
 ```
 
 Delete the temporary local repository you created
