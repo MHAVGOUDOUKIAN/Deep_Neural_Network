@@ -20,48 +20,12 @@ set(PERMISSIONS OWNER_READ
 include_directories(${SRC_DIR})
 
 # Select the sources and headers files to use in the current directory
-set( SOURCES
-    ${SRC_DIR}/main.cpp
-
-    #--Engine
-    ${SRC_DIR}/Engine/Engine.cpp
-    ${SRC_DIR}/Engine/EventHandler.cpp
-    ${SRC_DIR}/Engine/TimeManager.cpp
-    
-    #--Features
-    ${SRC_DIR}/Features/Network/Network.cpp
-    ${SRC_DIR}/Features/Particles/Particule.cpp
-    ${SRC_DIR}/Features/Particles/ParticuleGenerator.cpp
-    ${SRC_DIR}/Features/Particles/Ball.cpp
-    ${SRC_DIR}/Features/NeuralNetwork/NeuralNetwork.cpp
-    ${SRC_DIR}/Features/Matrix/Matrix.cpp
-    
-    #--Application
-    ${SRC_DIR}/Application/App.cpp
-)
-
-set( HEADERS
-    #--Engine
-    ${SRC_DIR}/Engine/Engine.hpp
-    ${SRC_DIR}/Engine/EventHandler.hpp
-    ${SRC_DIR}/Engine/TimeManager.hpp
-    
-    #--Features
-    ${SRC_DIR}/Features/Network/Network.hpp
-    ${SRC_DIR}/Features/Particles/Particule.hpp
-    ${SRC_DIR}/Features/Particles/ParticuleGenerator.hpp
-    ${SRC_DIR}/Features/Particles/Ball.hpp
-    ${SRC_DIR}/Features/Random/Random.hpp
-    ${SRC_DIR}/Features/NeuralNetwork/NeuralNetwork.hpp
-    ${SRC_DIR}/Features/Matrix/Matrix.hpp
-
-    #--Application
-    ${SRC_DIR}/Application/App.hpp
-)
+file(GLOB_RECURSE SRCS ../src/*.cpp)
+file(GLOB_RECURSE HDRS ../src/*.hpp)
 
 add_executable(${PROJECT_NAME} # Name of the executable
-    ${SOURCES}
-    ${HEADERS})
+    ${SRCS}
+    ${HDRS})
     
 target_link_libraries(${PROJECT_NAME}
     sfml-graphics
