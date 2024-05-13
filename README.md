@@ -41,5 +41,5 @@ Delete the temporary local repository you created
 
 ```shell
 cd ..
-rm -rf OLD-REPOSITORY.git
+rm -rf SFML_Template.git
 ```
