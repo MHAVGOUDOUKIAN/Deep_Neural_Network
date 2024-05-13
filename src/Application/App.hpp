@@ -6,6 +6,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <Engine/EventHandler.hpp>
+#include <Application/Matrix.hpp>
 
 class App : public sf::Drawable, public MouseObserver {
     public:
