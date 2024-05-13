@@ -33,7 +33,7 @@ git clone --bare https://github.com/MHAVGOUDOUKIAN/SFML_Template.git
 Push the mirror to the new repository
 
 ```shell
-cd OLD-REPOSITORY.git
+cd SFML_Template.git
 git push --mirror https://github.com/MHAVGOUDOUKIAN/NEW-SFML-PROJECT.git
 ```
 
