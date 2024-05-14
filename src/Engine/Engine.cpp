@@ -2,7 +2,7 @@
 
 Engine::Engine(): m_window(sf::VideoMode(800,600), "Application SFML"), m_eventHandler(EventHandler::getEventHandler())
 {
-    srand(time(0));
+    srand(time(NULL));
 
     m_app = new App();
 

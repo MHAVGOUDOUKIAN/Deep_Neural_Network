@@ -13,7 +13,8 @@ printb() {
 printb "#==== Launching installation ====#" 2
 cd build
 # Set the argument "DCMAKE_BUILD_TYPE" to Debug or Release
-cmake . -DCMAKE_BUILD_TYPE=Release
+# Use debug to enable assert macro
+cmake . -DCMAKE_BUILD_TYPE=Debug
 cmake --build . 
 cmake --install .
 rm $TITLE

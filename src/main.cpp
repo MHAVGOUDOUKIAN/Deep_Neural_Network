@@ -3,8 +3,9 @@
 #include <Tests/Matrix_test.hpp>
 
 int main() {
+    srand(time(NULL));
 
-    #ifdef ENABLE_TEST
+    #ifndef ENABLE_TEST
         Engine e;
         e.run();
     #else

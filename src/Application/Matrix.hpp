@@ -6,6 +6,7 @@
 #include <iostream>
 #include <Application/Random.hpp>
 
+
 class Matrix
 {
 public :
@@ -33,7 +34,6 @@ public :
 	void disp() const; // Debug function
 	
 private :
-	
 	std::size_t m_row;
 	std::size_t m_col;
 	std::vector<std::vector<float>> m_mat;
