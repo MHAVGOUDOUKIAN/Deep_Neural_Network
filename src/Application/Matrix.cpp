@@ -176,6 +176,22 @@ void Matrix::operator-=(const Matrix& B){
 	}
 }
 
+void Matrix::operator+(float value) {
+	for(int i=0; i<row(); i++) {
+		for(int j=0; j<col(); j++) {
+			this->setCoeff(i,j, this->getCoeff(i,j)+value);
+		}	
+	}
+}
+
+void Matrix::operator*(float value) {
+	for(int i=0; i<row(); i++) {
+		for(int j=0; j<col(); j++) {
+			this->setCoeff(i,j, this->getCoeff(i,j)*value);
+		}	
+	}
+}
+
 void Matrix::constMult(float c)
 {
 	for(std::size_t i = 0; i < m_row; ++i)
@@ -290,7 +306,7 @@ Matrix SumOnCol(const Matrix& A) {
 	{
 		for(std::size_t j = 0; j < A.col(); ++j)
 		{
-			res.setCoeff(i,0,A.getCoeff(i,j)+res.getCoeff(i,0));
+			res.setCoeff(i,0,res.getCoeff(i,0)+A.getCoeff(i,j));
 		}
 	}
 	return res;

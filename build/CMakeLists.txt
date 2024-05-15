@@ -9,7 +9,7 @@ set (SRC_DIR ${PROJECT_SOURCE_DIR}/../src)
 
 # Define macro for c++ preprocessor directives
 # Comment the following line to disable testing process
-add_compile_definitions(ENABLE_TEST)
+# add_compile_definitions(ENABLE_TEST)
 
 set(PERMISSIONS OWNER_READ 
     # Set the permissions you want for your executable

@@ -23,6 +23,8 @@ public :
 	Matrix operator+(const Matrix&) const;
 	Matrix operator*(const Matrix&) const;
 	void operator-=(const Matrix&);
+	void operator+(float value);
+	void operator*(float value);
 	
 	Matrix transposee() const;
 	Matrix diag() const;
