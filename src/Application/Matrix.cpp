@@ -214,6 +214,17 @@ void Matrix::applySigmo()
 	}
 }
 
+void Matrix::applyLog()
+{
+	for(std::size_t i = 0; i < m_row; ++i)
+	{
+		for(std::size_t j = 0; j < m_col; ++j)
+		{
+			m_mat[i][j] = log(m_mat[i][j]);
+		}
+	}
+}
+
 void Matrix::applySigmoPrime()
 {
 	for(std::size_t i = 0; i < m_row; ++i)

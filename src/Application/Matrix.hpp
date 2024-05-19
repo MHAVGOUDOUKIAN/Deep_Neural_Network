@@ -31,6 +31,7 @@ public :
 	
 	void constMult(float);
 	void applySigmo();
+	void applyLog();
 	void applySigmoPrime();
 	
 	void disp() const; // Debug function
