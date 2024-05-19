@@ -2,10 +2,12 @@
 
 #define log(str) std::cout << str << std::endl;
 
-App::App() : m_weight(Matrix(1,1)), m_bias(0.5f) {
+App::App() {
     EventHandler::getEventHandler()->addMouseObserver(this);
     m_data_coord = sf::VertexArray(sf::Quads,4);
     m_frontier = sf::VertexArray(sf::Lines, 2);
+    m_bias.clear();
+    m_weights.clear();
 
     // Generate training data
     int data_number_train{1000};
@@ -90,11 +92,12 @@ void App::generate_data_linear(Matrix& X_feature, Matrix& Y_class, bool update_g
 
 void App::train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const int epoch, const float learning_rate) {
     int features = X_train.col();
-    m_weight = Matrix(1,X_train.row());
+    m_weights.push_back(Matrix(1,X_train.row()));
+    m_bias.push_back(Matrix(1,1));
     for(int iter=0; iter<epoch; iter++) {        
         // Forward propagation
-        Matrix Z {m_weight*X_train};
-        Z+m_bias;
+        Matrix Z {m_weights[0]*X_train};
+        Z+m_bias[0].getCoeff(0,0);
         Matrix A{Z};
         A.applySigmo();
 
@@ -138,18 +141,22 @@ void App::train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const 
         // update weight and bias
         temp = dW.transposee();
         temp*(-learning_rate);
-        m_weight = m_weight+temp;
+        m_weights[0] = m_weights[0]+temp;
 
-        m_bias = m_bias - learning_rate * db_L;
+        m_bias[0].setCoeff(0,0, m_bias[0].getCoeff(0,0) - learning_rate * db_L);
     }
+}
+
+void App::train_doubleLayer(const Matrix& X_train,const Matrix& Y_train, const int epoch, const float learning_rate) {
+
 }
 
 void App::predict(const Matrix& X_test,const Matrix& Y_test) {
     log("");
     log("");
     log("PREDICTIONS")
-    Matrix Z {m_weight*X_test};
-    Z+m_bias;
+    Matrix Z {m_weights[0]*X_test};
+    Z+m_bias[0].getCoeff(0,0);
     Matrix A{Z};
     A.applySigmo();
     X_test.disp();
