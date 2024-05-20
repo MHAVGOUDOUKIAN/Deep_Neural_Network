@@ -14,7 +14,7 @@ public :
 	Matrix(std::size_t, std::size_t);
 	Matrix(std::size_t, std::size_t, float value);
 	Matrix(const std::vector<float>, bool);
-	
+
 	void setCoeff(std::size_t, std::size_t, const float);
 	float getCoeff(std::size_t, std::size_t) const;
 	std::size_t row() const;

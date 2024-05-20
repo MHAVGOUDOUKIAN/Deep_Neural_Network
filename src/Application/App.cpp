@@ -10,13 +10,13 @@ App::App() {
     m_weights.clear();
 
     // Generate training data
-    int data_number_train{10};
+    int data_number_train{100};
     Matrix X_train{Matrix(2,data_number_train)}, Y_train{Matrix(1,data_number_train)};
     generate_data_linear(X_train, Y_train,true);
 
     // Trainings
-    train_simpleNeuron(X_train, Y_train,100);
-
+    train_doubleLayer(X_train, Y_train,10000, 0.05f);
+    
     // Generate testing data
     int data_number_test{10};
     Matrix X_test{Matrix(2,data_number_test)}, Y_test{Matrix(1,data_number_test)};
@@ -26,6 +26,7 @@ App::App() {
 
     // Predictions
     predict(X_test, Y_test);
+    
     
 }
 
@@ -90,8 +91,10 @@ void App::generate_data_linear(Matrix& X_feature, Matrix& Y_class, bool update_g
     }
 }
 
+//
 void App::train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const int epoch, const float learning_rate) {
-    int features = X_train.col();
+    m_weights.clear();
+    m_bias.clear();
     m_weights.push_back(Matrix(1,X_train.row()));
     m_bias.push_back(Matrix(1,1, 0.5));
     for(int iter=0; iter<epoch; iter++) {        
@@ -148,18 +151,108 @@ void App::train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const 
 }
 
 void App::train_doubleLayer(const Matrix& X_train,const Matrix& Y_train, const int epoch, const float learning_rate) {
+    
+    m_weights.clear();
+    m_weights.push_back(Matrix(3,2));
+    m_weights.push_back(Matrix(1,3));
+    m_bias.clear();
+    m_bias.push_back(Matrix(3,1));  
+    m_bias.push_back(Matrix(1,1));
 
+    // Initialize activation matrix
+    std::vector<Matrix> activation;
+    activation.reserve(3); // equal to layers number
+    activation.push_back(X_train);
+    log(m_weights.size());
+    for(int i=0; i<m_weights.size(); i++) {
+        activation.push_back(Matrix(m_weights[i].row(),X_train.col()));
+    }
+
+    // Strating training process
+    for(int iter=0; iter<epoch; iter++) {    
+        // Forward propagation
+        for(int i=0; i<m_weights.size(); i++) {
+            Matrix Z {m_weights[i]*activation[i]};
+            Z.merge(m_bias[i]);
+            Z.applySigmo();
+            activation[i+1] = Z;
+        }
+
+        // Calc lost function
+        Matrix temp_A{activation[activation.size()-1]};
+        temp_A*(-1);
+        temp_A+1;
+        temp_A.applyLog();
+
+        Matrix temp_Y{Y_train};
+        temp_Y*(-1);
+        temp_Y+1;
+
+        Matrix res{Hadamard(temp_A,temp_Y)};
+
+        Matrix temp{activation[activation.size()-1]};
+        temp.applyLog();
+        temp = Hadamard(Y_train,temp);
+        res+temp;
+
+        double loss = 0;
+        for(int i=0; i<res.col();i++) loss += res.getCoeff(0,i);
+        loss*=-(1.f/(double)res.col());
+
+        std::cout << (float(iter)/float(epoch))*100.f << "% loss: " << loss << std::endl;
+
+        // Back propagation
+        float m = 1.f/(float)X_train.col();
+        Matrix dZ2{Y_train};
+        dZ2 *(-1);
+        dZ2 = dZ2 + activation[activation.size()-1];
+
+        Matrix dW2{dZ2};
+        dW2 * m;
+        dW2 = dW2 * (activation[activation.size()-2].transposee());
+    
+        Matrix dB2{SumOnCol(dZ2)};
+        dB2 * m;
+
+        Matrix dZ1 = (m_weights[1].transposee()) * dZ2;
+        temp = activation[activation.size()-2];
+        temp*(-1);
+        temp+1;
+        temp = Hadamard(temp,activation[activation.size()-2]);
+        dZ1 = Hadamard(dZ1,temp);
+
+        Matrix dW1{dZ1};
+        dW1 * m;
+        dW1 = dW1 * (activation[activation.size()-3].transposee());
+
+        Matrix dB1{SumOnCol(dZ1)};
+        dB2 * m;
+
+        // update weight and bias
+        dW1 * (-learning_rate);
+        dW2 * (-learning_rate);
+        dB1 * (-learning_rate);
+        dB2 * (-learning_rate);
+
+        m_weights[0] = m_weights[0] + dW1;
+        m_weights[1] = m_weights[1] + dW2;
+        m_bias[0] = m_bias[0] + dB1;
+        m_bias[1] = m_bias[1] + dB2;
+
+    }  
 }
 
 void App::predict(const Matrix& X_test,const Matrix& Y_test) {
     log("");
     log("");
     log("PREDICTIONS")
-    Matrix Z {m_weights[0]*X_test};
-    Z.merge(m_bias[0]);
-    Matrix A{Z};
-    A.applySigmo();
+    Matrix predict {X_test};
+    for(int i=0; i<m_weights.size(); i++) {
+            predict = m_weights[i]*predict;
+            predict.merge(m_bias[i]);
+            predict.applySigmo();
+    }
     X_test.disp();
-    A.disp();
+    predict.disp();
     Y_test.disp();
 }
