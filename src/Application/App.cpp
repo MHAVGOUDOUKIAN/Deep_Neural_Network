@@ -9,25 +9,27 @@ App::App() {
     m_bias.clear();
     m_weights.clear();
 
+    NeuralNetwork nn(2);
+    nn.addLayer(1);
+    nn.addLayer(1);
+
     // Generate training data
     int data_number_train{100};
     Matrix X_train{Matrix(2,data_number_train)}, Y_train{Matrix(1,data_number_train)};
-    generate_data_linear(X_train, Y_train,true);
+    generate_data_circle(X_train, Y_train,true);
 
     // Trainings
-    train_doubleLayer(X_train, Y_train,10000, 0.05f);
-    
+    //train_doubleLayer(X_train, Y_train,10000, 0.0001f);
+    nn.train(X_train,Y_train, 1000, 0.01f);
+
     // Generate testing data
     int data_number_test{10};
     Matrix X_test{Matrix(2,data_number_test)}, Y_test{Matrix(1,data_number_test)};
-    generate_data_linear(X_test, Y_test, true);
-    //X_test.disp();
-    //Y_test.disp();
+    generate_data_circle(X_test, Y_test, true);
 
     // Predictions
-    predict(X_test, Y_test);
-    
-    
+    //predict(X_test, Y_test);
+    nn.predict(X_test, Y_test);
 }
 
 App::~App() {}
@@ -74,6 +76,45 @@ void App::generate_data_linear(Matrix& X_feature, Matrix& Y_class, bool update_g
         }
 
         if(X_feature.getCoeff(0,i)*a + X_feature.getCoeff(1,i)*b +c >= 0) { // Class 0
+            Y_class.setCoeff(0,i,0);
+            class_color = sf::Color::Cyan;
+        }
+        else { // Class 1
+            Y_class.setCoeff(0,i,1);
+            class_color = sf::Color::Green;
+        }
+
+        if(update_graphics) {
+            m_data_coord[i*4].color = class_color;
+            m_data_coord[i*4+1].color = class_color;
+            m_data_coord[i*4+2].color = class_color;
+            m_data_coord[i*4+3].color = class_color;
+        }
+    }
+}
+
+void App::generate_data_circle(Matrix& X_feature, Matrix& Y_class, bool update_graphics) {    
+    const float r{0.3f}, x{0.5f}, y{0.5f};
+    const float zoom{500.f};
+    sf::Color class_color{sf::Color::Cyan};
+    if(update_graphics) {
+        m_data_coord = sf::VertexArray(sf::Quads,X_feature.col()*4);
+        m_frontier = sf::VertexArray(sf::Lines, 2);  // Used to draw frontier with SFML
+    }
+
+
+    // Create random data
+    for(int i=0; i<X_feature.col(); i++) {
+        for(int j=0; j<X_feature.row(); j++) X_feature.setCoeff(j,i,randomf(0,1));
+        
+        if(update_graphics) {
+            m_data_coord[i*4].position = sf::Vector2f(X_feature.getCoeff(0,i)*zoom-2,(1.0f-X_feature.getCoeff(1,i))*zoom-2);
+            m_data_coord[i*4+1].position = sf::Vector2f(X_feature.getCoeff(0,i)*zoom-2,(1.0f-X_feature.getCoeff(1,i))*zoom+2);
+            m_data_coord[i*4+2].position = sf::Vector2f(X_feature.getCoeff(0,i)*zoom+2,(1.0f-X_feature.getCoeff(1,i))*zoom+2);
+            m_data_coord[i*4+3].position = sf::Vector2f(X_feature.getCoeff(0,i)*zoom+2,(1.0f-X_feature.getCoeff(1,i))*zoom-2);
+        }
+
+        if((X_feature.getCoeff(0,i)-x)*(X_feature.getCoeff(0,i)-x) + (X_feature.getCoeff(1,i)-y)*(X_feature.getCoeff(1,i)-y) > r*r) { // Class 0
             Y_class.setCoeff(0,i,0);
             class_color = sf::Color::Cyan;
         }
@@ -226,7 +267,7 @@ void App::train_doubleLayer(const Matrix& X_train,const Matrix& Y_train, const i
         dW1 = dW1 * (activation[activation.size()-3].transposee());
 
         Matrix dB1{SumOnCol(dZ1)};
-        dB2 * m;
+        dB1 * m;
 
         // update weight and bias
         dW1 * (-learning_rate);
