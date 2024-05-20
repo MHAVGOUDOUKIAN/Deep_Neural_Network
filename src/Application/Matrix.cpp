@@ -192,6 +192,23 @@ void Matrix::operator*(float value) {
 	}
 }
 
+// This function does the following operation
+// [x11 ... x1n]		[a]		[x11+a ... x1n+a]
+// [x21 ... x2n]		[b]		[x21+b ... x2n+b]
+// [    ...    ]. merge([c]) = 	[	   ...      ]
+// [    ...    ]		[d]		[      ...      ]
+// [xm1 ... xmn]		[e]		[xm1+e ... xmn+e]
+void Matrix::merge(const Matrix& a) {
+	if(this->row() != a.row()) throw std::runtime_error ("Matrix::merge - wrong dimensions");
+	if(a.col() != 1) throw std::runtime_error ("Matrix::merge - the second member is not a vector");
+
+	for(int i=0; i<this->row();i++) {
+		for(int j=0; j<this->col(); j++) {
+			this->setCoeff(i,j, this->getCoeff(i,j)+a.getCoeff(i,0));
+		}
+	}
+}
+
 void Matrix::constMult(float c)
 {
 	for(std::size_t i = 0; i < m_row; ++i)

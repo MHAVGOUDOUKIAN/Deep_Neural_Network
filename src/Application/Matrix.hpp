@@ -25,6 +25,7 @@ public :
 	void operator-=(const Matrix&);
 	void operator+(float value);
 	void operator*(float value);
+	void merge(const Matrix&);
 	
 	Matrix transposee() const;
 	Matrix diag() const;

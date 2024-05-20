@@ -10,12 +10,12 @@ App::App() {
     m_weights.clear();
 
     // Generate training data
-    int data_number_train{1000};
+    int data_number_train{10};
     Matrix X_train{Matrix(2,data_number_train)}, Y_train{Matrix(1,data_number_train)};
     generate_data_linear(X_train, Y_train,true);
 
     // Trainings
-    train_simpleNeuron(X_train, Y_train,1000);
+    train_simpleNeuron(X_train, Y_train,100);
 
     // Generate testing data
     int data_number_test{10};
@@ -93,11 +93,11 @@ void App::generate_data_linear(Matrix& X_feature, Matrix& Y_class, bool update_g
 void App::train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const int epoch, const float learning_rate) {
     int features = X_train.col();
     m_weights.push_back(Matrix(1,X_train.row()));
-    m_bias.push_back(Matrix(1,1));
+    m_bias.push_back(Matrix(1,1, 0.5));
     for(int iter=0; iter<epoch; iter++) {        
         // Forward propagation
         Matrix Z {m_weights[0]*X_train};
-        Z+m_bias[0].getCoeff(0,0);
+        Z.merge(m_bias[0]);
         Matrix A{Z};
         A.applySigmo();
 
@@ -143,7 +143,7 @@ void App::train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const 
         temp*(-learning_rate);
         m_weights[0] = m_weights[0]+temp;
 
-        m_bias[0].setCoeff(0,0, m_bias[0].getCoeff(0,0) - learning_rate * db_L);
+        m_bias[0] + (-1)*(learning_rate * db_L);
     }
 }
 
@@ -156,7 +156,7 @@ void App::predict(const Matrix& X_test,const Matrix& Y_test) {
     log("");
     log("PREDICTIONS")
     Matrix Z {m_weights[0]*X_test};
-    Z+m_bias[0].getCoeff(0,0);
+    Z.merge(m_bias[0]);
     Matrix A{Z};
     A.applySigmo();
     X_test.disp();
