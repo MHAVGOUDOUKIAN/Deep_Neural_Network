@@ -10,7 +10,7 @@ App::App() {
     m_weights.clear();
 
     NeuralNetwork nn(2);
-    nn.addLayer(1);
+    nn.addLayer(2);
     nn.addLayer(1);
 
     // Generate training data
@@ -19,8 +19,8 @@ App::App() {
     generate_data_circle(X_train, Y_train,true);
 
     // Trainings
-    //train_doubleLayer(X_train, Y_train,10000, 0.0001f);
-    nn.train(X_train,Y_train, 1000, 0.01f);
+    train_doubleLayer(X_train, Y_train,1000, 0.5f, false);
+    //nn.train(X_train,Y_train, 1000, 0.1f);
 
     // Generate testing data
     int data_number_test{10};
@@ -46,13 +46,14 @@ void App::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(m_frontier);
 }
 
-// This function generate linearly separable data
+// This function generate linearly separable data from 2 class
 // X_feature max dim : row=2, col= nb_of_data
 // Y_class max dim: row=1, col=nb_of_data
 void App::generate_data_linear(Matrix& X_feature, Matrix& Y_class, bool update_graphics) {    
     const float a{-1.4f}, b{1.0f}, c{0.3f};
     const float zoom{500.f};
     sf::Color class_color{sf::Color::Cyan};
+    int nb_of_class0=0;
     if(update_graphics) {
         m_data_coord = sf::VertexArray(sf::Quads,X_feature.col()*4);
         m_frontier = sf::VertexArray(sf::Lines, 2);  // Used to draw frontier with SFML
@@ -78,6 +79,7 @@ void App::generate_data_linear(Matrix& X_feature, Matrix& Y_class, bool update_g
         if(X_feature.getCoeff(0,i)*a + X_feature.getCoeff(1,i)*b +c >= 0) { // Class 0
             Y_class.setCoeff(0,i,0);
             class_color = sf::Color::Cyan;
+            nb_of_class0++;
         }
         else { // Class 1
             Y_class.setCoeff(0,i,1);
@@ -91,17 +93,22 @@ void App::generate_data_linear(Matrix& X_feature, Matrix& Y_class, bool update_g
             m_data_coord[i*4+3].color = class_color;
         }
     }
+    std::cout << "data created [class 0: " << nb_of_class0 << "(" << ((float)nb_of_class0/(float)X_feature.col())*100.f <<"%)]" << std::endl;
+    std::cout << std::setw(23)<< " [class 1: " << X_feature.col() - nb_of_class0 << "(" << ((float)(X_feature.col() - nb_of_class0)/(float)X_feature.col())*100.f <<"%)]" << std::endl;  
 }
 
+// This function generate non linearly separable data from 2 class
+// X_feature max dim : row=2, col= nb_of_data
+// Y_class max dim: row=1, col=nb_of_data
 void App::generate_data_circle(Matrix& X_feature, Matrix& Y_class, bool update_graphics) {    
-    const float r{0.3f}, x{0.5f}, y{0.5f};
+    const float r{0.4f}, x{0.5f}, y{0.5f};
     const float zoom{500.f};
     sf::Color class_color{sf::Color::Cyan};
+    int nb_of_class0=0;
     if(update_graphics) {
         m_data_coord = sf::VertexArray(sf::Quads,X_feature.col()*4);
         m_frontier = sf::VertexArray(sf::Lines, 2);  // Used to draw frontier with SFML
     }
-
 
     // Create random data
     for(int i=0; i<X_feature.col(); i++) {
@@ -117,6 +124,7 @@ void App::generate_data_circle(Matrix& X_feature, Matrix& Y_class, bool update_g
         if((X_feature.getCoeff(0,i)-x)*(X_feature.getCoeff(0,i)-x) + (X_feature.getCoeff(1,i)-y)*(X_feature.getCoeff(1,i)-y) > r*r) { // Class 0
             Y_class.setCoeff(0,i,0);
             class_color = sf::Color::Cyan;
+            nb_of_class0++;
         }
         else { // Class 1
             Y_class.setCoeff(0,i,1);
@@ -130,10 +138,13 @@ void App::generate_data_circle(Matrix& X_feature, Matrix& Y_class, bool update_g
             m_data_coord[i*4+3].color = class_color;
         }
     }
+    std::cout << "data created [class 0: " << nb_of_class0 << "(" << ((float)nb_of_class0/(float)X_feature.col())*100.f <<"%)]" << std::endl;
+    std::cout << std::setw(23)<< " [class 1: " << X_feature.col() - nb_of_class0 << "(" << ((float)(X_feature.col() - nb_of_class0)/(float)X_feature.col())*100.f <<"%)]" << std::endl;  
 }
 
 //
-void App::train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const int epoch, const float learning_rate) {
+void App::train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const int epoch, const float learning_rate, const bool show_result) {
+    std::cout << "Training started" << std::endl;
     m_weights.clear();
     m_bias.clear();
     m_weights.push_back(Matrix(1,X_train.row()));
@@ -146,34 +157,37 @@ void App::train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const 
         A.applySigmo();
 
         // Calc lost function
-        Matrix temp_A{A};
-        temp_A*(-1);
-        temp_A+1;
-        temp_A.applyLog();
+        Matrix temp {Matrix(0,0)};
+        if(show_result) {
+            Matrix temp_A{A};
+            temp_A*(-1);
+            temp_A+1;
+            temp_A.applyLog();
 
-        Matrix temp_Y{Y_train};
-        temp_Y*(-1);
-        temp_Y+1;
+            Matrix temp_Y{Y_train};
+            temp_Y*(-1);
+            temp_Y+1;
 
-        Matrix res{Hadamard(temp_A,temp_Y)};
+            Matrix res{Hadamard(temp_A,temp_Y)};
 
-        Matrix temp{A};
-        temp.applyLog();
-        temp = Hadamard(Y_train,temp);
-        res+temp;
+            Matrix temp{A};
+            temp.applyLog();
+            temp = Hadamard(Y_train,temp);
+            res+temp;
 
-        double loss = 0;
-        for(int i=0; i<res.col();i++) loss += res.getCoeff(0,i);
-        loss*=-(1.f/(double)res.col());
+            double loss = 0;
+            for(int i=0; i<res.col();i++) loss += res.getCoeff(0,i);
+            loss*=-(1.f/(double)res.col());
 
-        std::cout << (float(iter)/float(epoch))*100.f << "% loss: " << loss << std::endl;
-        
+            std::cout << (float(iter)/float(epoch))*100.f << "% loss: " << loss << std::endl;
+        }
+
         // Back propagation
         Matrix dW = Y_train;
         dW*(-1);
         dW = dW+A;
         dW = X_train*dW.transposee();
-        dW*(1.f/(float)res.col());
+        dW*(1.f/(float)X_train.col());
 
         Matrix dB = Y_train;
         dB*(-1);
@@ -189,10 +203,11 @@ void App::train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const 
 
         m_bias[0] + (-1)*(learning_rate * db_L);
     }
+    std::cout << "Training done" << std::endl;
 }
 
-void App::train_doubleLayer(const Matrix& X_train,const Matrix& Y_train, const int epoch, const float learning_rate) {
-    
+void App::train_doubleLayer(const Matrix& X_train,const Matrix& Y_train, const int epoch, const float learning_rate, const bool show_result) {
+    std::cout << "Training started" << std::endl;
     m_weights.clear();
     m_weights.push_back(Matrix(3,2));
     m_weights.push_back(Matrix(1,3));
@@ -204,11 +219,9 @@ void App::train_doubleLayer(const Matrix& X_train,const Matrix& Y_train, const i
     std::vector<Matrix> activation;
     activation.reserve(3); // equal to layers number
     activation.push_back(X_train);
-    log(m_weights.size());
     for(int i=0; i<m_weights.size(); i++) {
         activation.push_back(Matrix(m_weights[i].row(),X_train.col()));
     }
-
     // Strating training process
     for(int iter=0; iter<epoch; iter++) {    
         // Forward propagation
@@ -220,27 +233,30 @@ void App::train_doubleLayer(const Matrix& X_train,const Matrix& Y_train, const i
         }
 
         // Calc lost function
-        Matrix temp_A{activation[activation.size()-1]};
-        temp_A*(-1);
-        temp_A+1;
-        temp_A.applyLog();
+        Matrix temp {Matrix(0,0)};
+        if(show_result) {
+            Matrix temp_A{activation[activation.size()-1]};
+            temp_A*(-1);
+            temp_A+1;
+            temp_A.applyLog();
 
-        Matrix temp_Y{Y_train};
-        temp_Y*(-1);
-        temp_Y+1;
+            Matrix temp_Y{Y_train};
+            temp_Y*(-1);
+            temp_Y+1;
 
-        Matrix res{Hadamard(temp_A,temp_Y)};
+            Matrix res{Hadamard(temp_A,temp_Y)};
 
-        Matrix temp{activation[activation.size()-1]};
-        temp.applyLog();
-        temp = Hadamard(Y_train,temp);
-        res+temp;
+            Matrix temp{activation[activation.size()-1]};
+            temp.applyLog();
+            temp = Hadamard(Y_train,temp);
+            res+temp;
 
-        double loss = 0;
-        for(int i=0; i<res.col();i++) loss += res.getCoeff(0,i);
-        loss*=-(1.f/(double)res.col());
+            double loss = 0;
+            for(int i=0; i<res.col();i++) loss += res.getCoeff(0,i);
+            loss*=-(1.f/(double)res.col());
 
-        std::cout << (float(iter)/float(epoch))*100.f << "% loss: " << loss << std::endl;
+            std::cout << (float(iter)/float(epoch))*100.f << "% loss: " << loss << std::endl;
+        }
 
         // Back propagation
         float m = 1.f/(float)X_train.col();
@@ -281,11 +297,10 @@ void App::train_doubleLayer(const Matrix& X_train,const Matrix& Y_train, const i
         m_bias[1] = m_bias[1] + dB2;
 
     }  
+    std::cout << "Training done" << std::endl;
 }
 
 void App::predict(const Matrix& X_test,const Matrix& Y_test) {
-    log("");
-    log("");
     log("PREDICTIONS")
     Matrix predict {X_test};
     for(int i=0; i<m_weights.size(); i++) {

@@ -19,7 +19,8 @@ void NeuralNetwork::clear(void) {
     m_weights.clear();
 }
 
-void NeuralNetwork::train(const Matrix& X_train, const Matrix& Y_train, const int epoch, const float learning_rate) {
+void NeuralNetwork::train(const Matrix& X_train, const Matrix& Y_train, const int epoch, const float learning_rate, const bool show_result) {
+    std::cout << "Training started" << std::endl;
     std::vector<Matrix> activation;
     activation.reserve(m_weights.size()+1); // equal to layers number
     activation.push_back(X_train);  
@@ -38,32 +39,35 @@ void NeuralNetwork::train(const Matrix& X_train, const Matrix& Y_train, const in
         }
 
         // Calc lost function
-        Matrix temp_A{activation[activation.size()-1]};
-        temp_A*(-1);
-        temp_A+1;
-        temp_A.applyLog();
+        Matrix temp {Matrix(0,0)};
+        if(show_result) {
+            Matrix temp_A{activation[activation.size()-1]};
+            temp_A*(-1);
+            temp_A+1;
+            temp_A.applyLog();
 
-        Matrix temp_Y{Y_train};
-        temp_Y*(-1);
-        temp_Y+1;
+            Matrix temp_Y{Y_train};
+            temp_Y*(-1);
+            temp_Y+1;
 
-        Matrix res{Hadamard(temp_A,temp_Y)};
+            Matrix res{Hadamard(temp_A,temp_Y)};
 
-        Matrix temp{activation[activation.size()-1]};
-        temp.applyLog();
-        temp = Hadamard(Y_train,temp);
-        res+temp;
+            Matrix temp{activation[activation.size()-1]};
+            temp.applyLog();
+            temp = Hadamard(Y_train,temp);
+            res+temp;
 
-        double value_loss {0.f};
-        Matrix loss { Matrix(res.row(),1)};
-        
-        for(int i=0; i<res.row();i++) {
-            for(int j=0; j<res.col();j++) loss.setCoeff(i,0,res.getCoeff(0,i));
-            loss.setCoeff(i,0, loss.getCoeff(i,0) * -(1.f/(double)res.col()));
+            double value_loss {0.f};
+            Matrix loss { Matrix(res.row(),1)};
+            
+            for(int i=0; i<res.row();i++) {
+                for(int j=0; j<res.col();j++) loss.setCoeff(i,0,res.getCoeff(0,i));
+                loss.setCoeff(i,0, loss.getCoeff(i,0) * -(1.f/(double)res.col()));
+            }
+            
+            loss.disp();
+            std::cout << (float(iter)/float(epoch))*100.f << "%" << std::endl;
         }
-        
-        loss.disp();
-        std::cout << (float(iter)/float(epoch))*100.f << "%" << std::endl;
 
         // Back propagation
         float m = 1.f/(float)X_train.col();
@@ -93,6 +97,7 @@ void NeuralNetwork::train(const Matrix& X_train, const Matrix& Y_train, const in
             m_bias[i-1] = m_bias[i-1] + dB;
         }
     }  
+    std::cout << "Training done" << std::endl;
 }
 
 void NeuralNetwork::predict(const Matrix& X_test, const Matrix& Y_test) {
