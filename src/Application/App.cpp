@@ -18,7 +18,7 @@ App::App() {
     Matrix X_train{Matrix(2,data_number_train)}, Y_train{Matrix(1,data_number_train)};
     generate_data_circle(X_train, Y_train,true);
 
-    // Trainings
+    // Training
     //train_doubleLayer(X_train, Y_train,100000, 0.5f, true);
     nn->train(X_train,Y_train, 100000, 0.3f,true);
 }

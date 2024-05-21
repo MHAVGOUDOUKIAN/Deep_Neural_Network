@@ -1,5 +1,9 @@
 #include <Application/NeuralNetwork.hpp>
 
+#include<unistd.h>
+unsigned int microsecond = 1000000;
+
+
 NeuralNetwork::NeuralNetwork(const int nb_features) : nb_features(nb_features) {}
 
 NeuralNetwork::~NeuralNetwork() {}
@@ -55,16 +59,15 @@ void NeuralNetwork::train(const Matrix& X_train, const Matrix& Y_train, const in
             Matrix temp{activation[activation.size()-1]};
             temp.applyLog();
             temp = Hadamard(Y_train,temp);
-            res+temp;
+            res = res+temp;
 
-            double value_loss {0.f};
             Matrix loss { Matrix(res.row(),1)};
             
             for(int i=0; i<res.row();i++) {
                 for(int j=0; j<res.col();j++) loss.setCoeff(i,0,res.getCoeff(0,i));
-                loss.setCoeff(i,0, loss.getCoeff(i,0) * -(1.f/(double)res.col()));
+                loss.setCoeff(i,0, loss.getCoeff(i,0) * -(1.f/(double)X_train.col()));
             }
-            
+
             loss.disp();
             std::cout << (float(iter)/float(epoch))*100.f << "%" << std::endl;
         }
