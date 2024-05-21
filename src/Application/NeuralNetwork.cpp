@@ -111,4 +111,13 @@ void NeuralNetwork::predict(const Matrix& X_test, const Matrix& Y_test) {
     X_test.disp();
     predict.disp();
     Y_test.disp();
+    int good_answer=0;
+    for(int i=0;i<X_test.col();i++) {
+        int temp_answer=0;
+        if(predict.getCoeff(0,i)>=0.5) temp_answer = 1;
+        else temp_answer=0;
+
+        if(temp_answer == Y_test.getCoeff(0,i)) good_answer++;
+    }
+    std::cout << "Number of good answer: " << good_answer <<"/" << Y_test.col() << std::endl;
 }

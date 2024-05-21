@@ -3,15 +3,15 @@
 #define log(str) std::cout << str << std::endl;
 
 App::App() {
-    EventHandler::getEventHandler()->addMouseObserver(this);
+    EventHandler::getEventHandler()->addKeyBoardObserver(this);
     m_data_coord = sf::VertexArray(sf::Quads,4);
     m_frontier = sf::VertexArray(sf::Lines, 2);
     m_bias.clear();
     m_weights.clear();
 
-    NeuralNetwork nn(2);
-    nn.addLayer(2);
-    nn.addLayer(1);
+    nn = new NeuralNetwork(2);
+    nn->addLayer(4);
+    nn->addLayer(1);
 
     // Generate training data
     int data_number_train{100};
@@ -19,17 +19,8 @@ App::App() {
     generate_data_circle(X_train, Y_train,true);
 
     // Trainings
-    train_doubleLayer(X_train, Y_train,1000, 0.5f, false);
-    //nn.train(X_train,Y_train, 1000, 0.1f);
-
-    // Generate testing data
-    int data_number_test{10};
-    Matrix X_test{Matrix(2,data_number_test)}, Y_test{Matrix(1,data_number_test)};
-    generate_data_circle(X_test, Y_test, true);
-
-    // Predictions
-    //predict(X_test, Y_test);
-    nn.predict(X_test, Y_test);
+    //train_doubleLayer(X_train, Y_train,100000, 0.5f, true);
+    nn->train(X_train,Y_train, 50000, 0.1f,true);
 }
 
 App::~App() {}
@@ -38,7 +29,17 @@ void App::update(sf::Time deltaTime) {
 
 }
 
-void App::notify(sf::Mouse::Button mouse, sf::Vector2i& pos, bool clicked) {
+void App::notify(sf::Keyboard::Key key, bool pressed) {
+    if(key == sf::Keyboard::Space && pressed) {
+        // Generate testing data
+        int data_number_test{100};
+        Matrix X_test{Matrix(2,data_number_test)}, Y_test{Matrix(1,data_number_test)};
+        generate_data_circle(X_test, Y_test, true);
+
+        // Predictions
+        //predict(X_test, Y_test);
+        nn->predict(X_test, Y_test);
+    }
 }
 
 void App::draw(sf::RenderTarget& target, sf::RenderStates states) const {
@@ -311,4 +312,13 @@ void App::predict(const Matrix& X_test,const Matrix& Y_test) {
     X_test.disp();
     predict.disp();
     Y_test.disp();
+    int good_answer=0;
+    for(int i=0;i<X_test.col();i++) {
+        int temp_answer=0;
+        if(predict.getCoeff(0,i)>=0.5) temp_answer = 1;
+        else temp_answer=0;
+
+        if(temp_answer == Y_test.getCoeff(0,i)) good_answer++;
+    }
+    std::cout << "Number of good answer: " << good_answer <<"/" << Y_test.col() << std::endl;
 }

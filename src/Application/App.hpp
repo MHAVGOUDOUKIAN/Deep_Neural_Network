@@ -11,13 +11,13 @@
 #include <Application/NeuralNetwork.hpp>
 #include <exception>
 
-class App : public sf::Drawable, public MouseObserver {
+class App : public sf::Drawable, public KeyBoardObserver {
     public:
         App();
         virtual ~App();
         void update(sf::Time deltaTime);
         virtual void draw(sf::RenderTarget& target, sf::RenderStates states) const;
-        virtual void notify(sf::Mouse::Button mouse, sf::Vector2i& pos, bool clicked);
+        virtual void notify(sf::Keyboard::Key key, bool pressed);
 
     private:
         void generate_data_linear(Matrix& X_feature,Matrix& Y_class, bool update_graphics=false);
@@ -32,6 +32,8 @@ class App : public sf::Drawable, public MouseObserver {
 
         std::vector<Matrix> m_weights;
         std::vector<Matrix> m_bias;
+
+        NeuralNetwork* nn;
 };
 
 #endif
