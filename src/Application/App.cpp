@@ -20,7 +20,7 @@ App::App() {
 
     // Trainings
     //train_doubleLayer(X_train, Y_train,100000, 0.5f, true);
-    nn->train(X_train,Y_train, 50000, 0.1f,true);
+    nn->train(X_train,Y_train, 100000, 0.3f,true);
 }
 
 App::~App() {}
