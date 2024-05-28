@@ -103,7 +103,7 @@ void NeuralNetwork::train(const Matrix& X_train, const Matrix& Y_train, const in
     std::cout << "Training done" << std::endl;
 }
 
-void NeuralNetwork::predict(const Matrix& X_test, const Matrix& Y_test) {
+Matrix NeuralNetwork::predict(const Matrix& X_test, const Matrix& Y_test) {
     std::cout << "PREDICTIONS" << std::endl;
     Matrix predict {X_test};
     for(int i=0; i<m_weights.size(); i++) {
@@ -114,4 +114,5 @@ void NeuralNetwork::predict(const Matrix& X_test, const Matrix& Y_test) {
     X_test.disp();
     predict.disp();
     Y_test.disp();
+    return predict;
 }

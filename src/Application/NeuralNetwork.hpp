@@ -12,7 +12,7 @@ class NeuralNetwork {
         void addLayer(const int nb_neuron);
         void clear(void);
         void train(const Matrix& X_train, const Matrix& Y_train, const int epoch=1, const float learning_rate=1.0f, const bool show_result=true);
-        void predict(const Matrix& X_test, const Matrix& Y_test);
+        Matrix predict(const Matrix& X_test, const Matrix& Y_test);
 
     private:
         std::vector<Matrix> m_weights;

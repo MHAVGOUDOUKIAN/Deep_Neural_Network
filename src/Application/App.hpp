@@ -22,10 +22,11 @@ class App : public sf::Drawable, public KeyBoardObserver {
     private:
         void generate_data_linear(Matrix& X_feature,Matrix& Y_class, bool update_graphics=false);
         void generate_data_circle(Matrix& X_feature,Matrix& Y_class, bool update_graphics=false);
+        void generate_data_balanced(Matrix& X_feature,Matrix& Y_class, bool update_graphics=false);
         void generate_data_3_class(Matrix& X_feature,Matrix& Y_class, bool update_graphics=false);
         void train_simpleNeuron(const Matrix& X_train,const Matrix& Y_train, const int epoch=10, const float learning_rate=1.0f, const bool show_result=true);
         void train_doubleLayer(const Matrix& X_train,const Matrix& Y_train, const int epoch=10, const float learning_rate=1.0f, const bool show_result=true);
-        void predict(const Matrix& X_test,const Matrix& Y_test);
+        Matrix predict(const Matrix& X_test,const Matrix& Y_test);
     
     private:
         sf::VertexArray m_data_coord; 
