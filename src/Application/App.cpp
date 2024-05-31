@@ -14,27 +14,25 @@ App::App() {
     nn->addLayer(1);    // Output layer
 
     // Generate training data
-    int data_number_train{1000};
+    int data_number_train{100};
     Matrix X_train{Matrix(2,data_number_train)}, Y_train{Matrix(1,data_number_train)};
-    generate_data_balanced(X_train, Y_train,true);
+    generate_data_circle(X_train, Y_train,true);
 
     // Training
     //train_doubleLayer(X_train, Y_train,100000, 0.5f, true);
-    nn->train(X_train,Y_train, 10000, 0.3f,true);
+    nn->newtrain(X_train,Y_train, 10000, 0.3f,true);
 }
 
 App::~App() {}
 
-void App::update(sf::Time deltaTime) {
-
-}
+void App::update(sf::Time deltaTime) {}
 
 void App::notify(sf::Keyboard::Key key, bool pressed) {
     if(key == sf::Keyboard::Space && pressed) {
         // Generate testing data
         int data_number_test{100};
         Matrix X_test{Matrix(2,data_number_test)}, Y_test{Matrix(1,data_number_test)};
-        generate_data_balanced(X_test, Y_test, true);
+        generate_data_circle(X_test, Y_test, true);
 
         // Predictions
         //predict(X_test, Y_test);

@@ -1,8 +1,6 @@
 #include <Application/NeuralNetwork.hpp>
 
 #include<unistd.h>
-unsigned int microsecond = 1000000;
-
 
 NeuralNetwork::NeuralNetwork(const int nb_features) : nb_features(nb_features) {}
 
@@ -32,7 +30,7 @@ void NeuralNetwork::train(const Matrix& X_train, const Matrix& Y_train, const in
         activation.push_back(Matrix(m_weights[i].row(),X_train.col()));
     }
 
-    // Strating training process
+    // Starting training process
     for(int iter=0; iter<epoch; iter++) {    
         // Forward propagation
         for(int i=0; i<m_weights.size(); i++) {
@@ -103,6 +101,74 @@ void NeuralNetwork::train(const Matrix& X_train, const Matrix& Y_train, const in
     std::cout << "Training done" << std::endl;
 }
 
+void NeuralNetwork::newtrain(const Matrix& X_train, const Matrix& Y_train, const int epoch, const float learning_rate, const bool show_result) {
+    std::cout << "Training started" << std::endl;
+    // Creating vector to store activation matrix and z Matrix
+    std::vector<Matrix> activation;
+    std::vector<Matrix> function_z;
+    activation.push_back(X_train);  
+    function_z.push_back(X_train);  
+
+    float m = 1.f/(double)X_train.col();
+
+    activation.reserve(m_weights.size()+1);
+    function_z.reserve(m_weights.size()+1);
+    for(int i=0; i<m_weights.size(); i++) {
+        activation.push_back(Matrix(m_weights[i].row(),X_train.col()));
+        function_z.push_back(Matrix(m_weights[i].row(),X_train.col()));
+    }
+
+    // Starting training process
+    for(int iter=0; iter<epoch; iter++) {    
+        // Forward propagation
+        for(int i=0; i<m_weights.size(); i++) {
+            function_z[i+1] = m_weights[i]*activation[i];
+            function_z[i+1].merge(m_bias[i]);
+            activation[i+1] = function_z[i+1];
+            activation[i+1].applySigmo();
+        }
+
+        // Calc lost function
+        Matrix glob_loss_function= applyLogLoss(activation[activation.size()-1], Y_train);
+        Matrix res = Matrix(Y_train.row(), 1);
+        for(int i=0; i<glob_loss_function.row();i++) {
+            float add = 0.f;
+            for(int j=0; j<glob_loss_function.col();j++) {
+                add += glob_loss_function.getCoeff(i,j);
+            }
+            res.setCoeff(i,0,add);
+        }
+        Matrix tempo{res};
+        res*(-m);
+        res.disp();
+        std::cout << (float(iter)/float(epoch))*100.f << "%" << std::endl;
+
+        // Back propagation
+        Matrix dZ = applyLogLossDerivate(activation[activation.size()-1], Y_train);
+        dZ = Hadamard(dZ, derivateSigm(function_z[function_z.size()-1]));
+
+        for(int i=activation.size()-1; i>0; i--) {
+            Matrix dW{dZ};
+            dW*m;
+            dW = dW*(activation[i-1].transposee());
+
+            Matrix dB{SumOnCol(dZ)};
+            dB * m;
+
+            dZ = m_weights[i-1].transposee() * dZ;
+            dZ = Hadamard(dZ, derivateSigm(function_z[i-1]));
+
+            dW * (learning_rate);
+            dB * (learning_rate);
+            
+            m_weights[i-1] = m_weights[i-1] + dW;
+            m_bias[i-1] = m_bias[i-1] + dB;
+        }
+    }
+
+    std::cout << "Training done" << std::endl;
+}
+
 Matrix NeuralNetwork::predict(const Matrix& X_test, const Matrix& Y_test) {
     std::cout << "PREDICTIONS" << std::endl;
     Matrix predict {X_test};
@@ -116,3 +182,62 @@ Matrix NeuralNetwork::predict(const Matrix& X_test, const Matrix& Y_test) {
     Y_test.disp();
     return predict;
 }
+
+// Apply Log loss on matrix A and  Y
+// NOTE: dim(A) = dim(Y)
+Matrix NeuralNetwork::applyLogLoss(const Matrix& A, const Matrix& Y) {
+    //A.disp();
+    float eps = 0.000000000015;
+    Matrix res = Matrix(A.row(), A.col(),0.f);
+    for(int i=0; i<A.row(); i++) {
+        for(int j=0; j<A.col(); j++) {
+            res.setCoeff(i,j, Y.getCoeff(i,j) * log(A.getCoeff(i,j)+eps)+ (1.f-Y.getCoeff(i,j))*log(1.f-A.getCoeff(i,j)+eps));
+        }   
+    }
+    return res;
+}
+
+// Apply Log loss derivate on matrix A and  Y
+// NOTE: dim(A) = dim(Y)
+Matrix NeuralNetwork::applyLogLossDerivate(const Matrix& A, const Matrix& Y) {
+    float eps = 0.000000000015;
+    Matrix res {Matrix(A.row(), A.col(),0.f)};
+    for(int i=0; i<A.row(); i++) {
+        for(int j=0; j<A.col(); j++) {
+            res.setCoeff(i,j, Y.getCoeff(i,j)/A.getCoeff(i,j) - (1.f-Y.getCoeff(i,j))/(1.f-A.getCoeff(i,j)+eps));
+        }   
+    }
+    return res;
+}
+
+Matrix calculateSigmActivation(Matrix& Z) {
+    Matrix res {Matrix(Z.row(), Z.col(),0.f)};
+    for(int i=0; i<Z.row(); i++) {
+        for(int j=0; j<Z.col(); j++) {
+            res.setCoeff(i,j, 1.f / (1.f + exp(-1.f * Z.getCoeff(i,j))));
+        }
+    }
+    return res;
+}
+
+Matrix derivateSigm(Matrix& Z) {
+    Matrix res {Matrix(Z.row(), Z.col(),0.f)};
+    for(int i=0; i<Z.row(); i++) {
+        for(int j=0; j<Z.col(); j++) {
+            float sigmo = 1.f / (1.f + exp(-1.f * Z.getCoeff(i,j)));
+            res.setCoeff(i,j, sigmo * (1.f - sigmo));
+        }
+    }
+    return res;
+}
+
+/*
+float Sigmoid::calculateActivation(const float x) const {
+    return 1.f / (1.f + exp(-1.f * x));
+}
+
+float Sigmoid::derivate(const float x) const {
+    float sigmo = 1.f / (1.f + exp(-1.f * x));
+	return sigmo * (1 - sigmo);
+}
+*/
