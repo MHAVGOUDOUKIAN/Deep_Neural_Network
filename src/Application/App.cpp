@@ -9,20 +9,20 @@ App::App() {
     m_bias.clear();
     m_weights.clear();
 
-    nn = new NeuralNetwork(2); // Initialize the network with an input layer with 2 entries
-    nn->addLayer(8);    // Hidden layer
-    nn->addLayer(1);    // Output layer
+    nn = new NeuralNetwork(2, LossFunction::BINARY_CROSS_ENTROPY); // Initialize the network with an input layer with 2 entries
+    nn->addLayer(4, Activation::SIGMOID);
+    nn->addLayer(1, Activation::SIGMOID);    // Last Layer = Output layer
 
     // Generate training data
-    int data_number_train{100};
+    int data_number_train{200};
     Matrix X_train{Matrix(2,data_number_train)}, Y_train{Matrix(1,data_number_train)};
     generate_data_circle(X_train, Y_train,true);
 
     // Training
     //train_doubleLayer(X_train, Y_train,100000, 0.5f, true);
-    nn->newtrain(X_train,Y_train, 10000, 0.3f,true);
+    nn->newtrain(X_train,Y_train, 50000, 0.001f,true);
 }
-
+     
 App::~App() {}
 
 void App::update(sf::Time deltaTime) {}
@@ -30,7 +30,7 @@ void App::update(sf::Time deltaTime) {}
 void App::notify(sf::Keyboard::Key key, bool pressed) {
     if(key == sf::Keyboard::Space && pressed) {
         // Generate testing data
-        int data_number_test{100};
+        int data_number_test{1000};
         Matrix X_test{Matrix(2,data_number_test)}, Y_test{Matrix(1,data_number_test)};
         generate_data_circle(X_test, Y_test, true);
 
@@ -59,7 +59,7 @@ void App::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 void App::generate_data_linear(Matrix& X_feature, Matrix& Y_class, bool update_graphics) {    
     const float a{-1.4f}, b{1.0f}, c{0.3f};
     const float zoom{500.f};
-    sf::Color class_color{sf::Color::Cyan};
+    sf::Color class_color{sf::Color::Red};
     int nb_of_class0=0;
     if(update_graphics) {
         m_data_coord = sf::VertexArray(sf::Quads,X_feature.col()*4);
@@ -85,7 +85,7 @@ void App::generate_data_linear(Matrix& X_feature, Matrix& Y_class, bool update_g
 
         if(X_feature.getCoeff(0,i)*a + X_feature.getCoeff(1,i)*b +c >= 0) { // Class 0
             Y_class.setCoeff(0,i,0);
-            class_color = sf::Color::Cyan;
+            class_color = sf::Color::Red;
             nb_of_class0++;
         }
         else { // Class 1
@@ -110,7 +110,7 @@ void App::generate_data_linear(Matrix& X_feature, Matrix& Y_class, bool update_g
 void App::generate_data_circle(Matrix& X_feature, Matrix& Y_class, bool update_graphics) {    
     const float r{0.4f}, x{0.5f}, y{0.5f};
     const float zoom{500.f};
-    sf::Color class_color{sf::Color::Cyan};
+    sf::Color class_color{sf::Color::Red};
     int nb_of_class0=0;
     if(update_graphics) {
         m_data_coord = sf::VertexArray(sf::Quads,X_feature.col()*4);
@@ -130,7 +130,7 @@ void App::generate_data_circle(Matrix& X_feature, Matrix& Y_class, bool update_g
 
         if((X_feature.getCoeff(0,i)-x)*(X_feature.getCoeff(0,i)-x) + (X_feature.getCoeff(1,i)-y)*(X_feature.getCoeff(1,i)-y) > r*r) { // Class 0
             Y_class.setCoeff(0,i,0);
-            class_color = sf::Color::Cyan;
+            class_color = sf::Color::Red;
             nb_of_class0++;
         }
         else { // Class 1
@@ -155,7 +155,7 @@ void App::generate_data_circle(Matrix& X_feature, Matrix& Y_class, bool update_g
 void App::generate_data_balanced(Matrix& X_feature, Matrix& Y_class, bool update_graphics) {    
     const float r{0.4f}, x{0.5f}, y{0.5f};
     const float zoom{500.f};
-    sf::Color class_color{sf::Color::Cyan};
+    sf::Color class_color{sf::Color::Red};
     int nb_of_class0=0;
     if(update_graphics) {
         m_data_coord = sf::VertexArray(sf::Quads,X_feature.col()*4);
@@ -175,7 +175,7 @@ void App::generate_data_balanced(Matrix& X_feature, Matrix& Y_class, bool update
 
         if(X_feature.getCoeff(0,i) < 0.5 && X_feature.getCoeff(1,i) < 0.5 || X_feature.getCoeff(0,i) > 0.5 && X_feature.getCoeff(1,i) > 0.5){ // Class 0
             Y_class.setCoeff(0,i,0);
-            class_color = sf::Color::Cyan;
+            class_color = sf::Color::Red;
             nb_of_class0++;
         }
         else { // Class 1
@@ -199,7 +199,7 @@ void App::generate_data_balanced(Matrix& X_feature, Matrix& Y_class, bool update
 // Y_class max dim: row=3, col=nb_of_data
 void App::generate_data_3_class(Matrix& X_feature,Matrix& Y_class, bool update_graphics) {
     const float zoom{500.f};
-    sf::Color class_color{sf::Color::Cyan};
+    sf::Color class_color{sf::Color::Red};
     int nb_of_class0=0;
     int nb_of_class1=0;
     int nb_of_class2=0;
@@ -222,7 +222,7 @@ void App::generate_data_3_class(Matrix& X_feature,Matrix& Y_class, bool update_g
             Y_class.setCoeff(0,i,1);
             Y_class.setCoeff(1,i,0);
             Y_class.setCoeff(2,i,0);
-            class_color = sf::Color::Cyan;
+            class_color = sf::Color::Red;
             nb_of_class0++;
         }
         else if (X_feature.getCoeff(0,i) <= 0.5 && X_feature.getCoeff(1,i) > 0.5) { // Class 1
